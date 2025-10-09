@@ -21,8 +21,6 @@ jobs:
           gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
           python3-setuptools rsync swig unzip zlib1g-dev file wget
           sudo timedatectl set-timezone "Asia/Shanghai"
-          sudo chown -R boltwrt:boltwrt /home/runner/work/BoltWrt/BoltWrt
-          sudo chmod -Rf 755 /home/runner/work/BoltWrt/BoltWrt
           cd /home/runner/work/BoltWrt/BoltWrt
           ./scripts/feeds update -a
           ./scripts/feeds install -a
