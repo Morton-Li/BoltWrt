@@ -17,6 +17,15 @@ jobs:
           gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
           python3-setuptools rsync swig unzip zlib1g-dev file wget
           sudo timedatectl set-timezone "Asia/Shanghai"
+      
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Install Feeds
+        working-directory: /home/runner/work/BoltWrt/BoltWrt
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3

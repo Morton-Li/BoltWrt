@@ -28,10 +28,6 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-          echo "Fetching .config..."
-          curl -L -f -o .config "${{ github.event.inputs.config_file_url }}" || (echo "❌ Failed to download config file" && exit 1)
-          head -n 10 .config
-
           make defconfig
 
           echo "Downloading feeds..."
