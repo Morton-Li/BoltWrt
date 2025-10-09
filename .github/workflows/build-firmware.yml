@@ -28,11 +28,14 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-          curl -o .config "${{ github.event.inputs.config_file_url }}"
-          ls -a
+          echo "Fetching .config..."
+          curl -L -f -o .config "${{ github.event.inputs.config_file_url }}" || (echo "❌ Failed to download config file" && exit 1)
+          head -n 10 .config
+
           make defconfig
 
-          make download -j8
+          echo "Downloading feeds..."
+          make download -j8 || (echo "❌ Failed to download feeds" && exit 1)
 
           echo "Using $(nproc) processors for building"
           make -j $(($(nproc)+1)) || make -j1 V=s
