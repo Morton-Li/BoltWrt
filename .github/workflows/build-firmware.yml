@@ -2,10 +2,6 @@ name: Build Firmware
 
 on:
   workflow_dispatch:
-    inputs:
-      config_file_url:
-        description: 'Config file URL'
-        required: true
 
 jobs:
   build:
