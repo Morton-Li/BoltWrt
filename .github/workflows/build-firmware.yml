@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Build Firmware
+        id: build
         working-directory: /home/runner/work/BoltWrt/BoltWrt
         run: |
           ./scripts/feeds update -a
@@ -40,3 +41,10 @@ jobs:
       - name: Check Disk Usage
         if: (!cancelled())
         run: df -h
+      
+      - name: Upload Artifacts
+        if: (!cancelled() && steps.build.outputs.status == 'success')
+        uses: actions/upload-artifact@v4
+        with:
+          name: BoltWrt_bin_${{ env.DEVICE_NAME }}_${{ env.FILE_DATE }}
+          path: /home/runner/work/BoltWrt/BoltWrt/bin
