@@ -35,6 +35,9 @@ jobs:
         working-directory: /home/runner/work/BoltWrt/BoltWrt
         run: |
           set -e
+          echo "Normalizing build configuration..."
+          make defconfig
+
           echo "Downloading feeds..."
           make download -j8 || (echo "❌ Failed to download feeds" && exit 1)
 
