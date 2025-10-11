@@ -25,8 +25,6 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-          make defconfig
-
           echo "Downloading feeds..."
           make download -j8 || (echo "❌ Failed to download feeds" && exit 1)
 
@@ -47,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BoltWrt_bin_${{ env.DEVICE_NAME }}_${{ env.FILE_DATE }}
-          path: /home/runner/work/BoltWrt/BoltWrt/bin
+          path: /home/runner/work/BoltWrt/BoltWrt/bin/targets/
