@@ -21,11 +21,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v5
 
-      - name: Install Feeds
+      - name: Setup Feeds
         working-directory: /home/runner/work/BoltWrt/BoltWrt
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+
+          # 修改 LuCI 默认主题路径
+          sed -i "s#/luci-static/bootstrap#/luci-static/argon#" feeds/luci/modules/luci-base/root/etc/config/luci
+
+          # 修正 luci-nginx 集合包的依赖
+          sed -i -E "s/[[:space:]]*\+luci-theme-bootstrap//" feeds/luci/collections/luci-nginx/Makefile
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
