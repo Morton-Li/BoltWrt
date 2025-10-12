@@ -7,9 +7,6 @@ jobs:
   debug_session:
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
       - name: Initialize Environment
         run: |
           sudo -E apt-get -qq update
@@ -17,7 +14,7 @@ jobs:
           gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
           python3-setuptools rsync swig unzip zlib1g-dev file wget qemu-utils
           sudo timedatectl set-timezone "Asia/Shanghai"
-      
+
       - name: Checkout Code
         uses: actions/checkout@v5
 
@@ -32,6 +29,8 @@ jobs:
 
           # 修正 luci-nginx 集合包的依赖
           sed -i -E "s/[[:space:]]*\+luci-theme-bootstrap//" feeds/luci/collections/luci-nginx/Makefile
+
+          mv config.txt .config
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
