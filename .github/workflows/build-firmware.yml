@@ -9,6 +9,7 @@ jobs:
     steps:
       - name: Initialize Environment
         run: |
+          df -hT .
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install -y build-essential clang flex bison g++ gawk \
           gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
@@ -39,10 +40,13 @@ jobs:
           make defconfig
 
           echo "Downloading feeds..."
-          make download -j8 || (echo "❌ Failed to download feeds" && exit 1)
+          make download -j6 || (echo "❌ Failed to download feeds" && exit 1)
 
           echo "Using $(nproc) processors for building"
           make -j $(($(nproc)+1)) || make -j1 V=s
+
+          echo "Build completed successfully."
+          df -hT .
       
       - name: Upload Firmware Artifacts
         if: (!cancelled())
@@ -50,12 +54,11 @@ jobs:
         with:
           name: BoltWrt-Firmware
           path: |
-            bin/targets/x86/64/*.{gz,manifest,bin,vmdk,buildinfo,json}
-            bin/targets/x86/64/BoltWrt-x86-64-generic-squashfs-combined.img.gz
-            bin/targets/x86/64/BoltWrt-x86-64-generic-squashfs-combined-efi.img.gz
-            bin/targets/x86/64/BoltWrt-x86-64-generic-squashfs-combined.vmdk
-            bin/targets/x86/64/BoltWrt-x86-64-generic-squashfs-combined-efi.vmdk
-            bin/targets/x86/64/BoltWrt-x86-64-generic.manifest
+            bin/targets/x86/64/boltwrt-x86-64-generic-squashfs-combined.img.gz
+            bin/targets/x86/64/boltwrt-x86-64-generic-squashfs-combined-efi.img.gz
+            bin/targets/x86/64/boltwrt-x86-64-generic-squashfs-combined.vmdk
+            bin/targets/x86/64/boltwrt-x86-64-generic-squashfs-combined-efi.vmdk
+            bin/targets/x86/64/boltwrt-x86-64-generic.manifest
             bin/targets/x86/64/config.buildinfo
             bin/targets/x86/64/feeds.buildinfo
             bin/targets/x86/64/version.buildinfo
@@ -67,4 +70,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BoltWrt-SDK
-          path: bin/targets/x86/64/BoltWrt-SDK*.tar.zst
+          path: bin/targets/x86/64/boltwrt-sdk-x86-64_*.tar.zst
