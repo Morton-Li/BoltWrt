@@ -29,7 +29,7 @@ VERSION_CODE:=$(call qstrip,$(CONFIG_VERSION_CODE))
 VERSION_CODE:=$(if $(VERSION_CODE),$(VERSION_CODE),stable)
 
 VERSION_REPO:=$(call qstrip,$(CONFIG_VERSION_REPO))
-VERSION_REPO:=$(if $(VERSION_REPO),$(VERSION_REPO),https://github.com/Morton-Li/BoltWrt/releases/26.0.0)
+VERSION_REPO:=$(if $(VERSION_REPO),$(VERSION_REPO),https://mirrors.tuna.tsinghua.edu.cn/openwrt/releases/24.10.3)
 
 VERSION_DIST:=$(call qstrip,$(CONFIG_VERSION_DIST))
 VERSION_DIST:=$(if $(VERSION_DIST),$(VERSION_DIST),BoltWrt)
