@@ -31,6 +31,11 @@ jobs:
           # 修正 luci-nginx 集合包的依赖
           sed -i -E "s/[[:space:]]*\+luci-theme-bootstrap//" feeds/luci/collections/luci-nginx/Makefile
 
+          # 修改 nginx ssl 证书生成配置
+          # std::string subject{"/C=ZZ/ST=Somewhere/L=None/CN=OpenWrt/O=OpenWrt"};
+          sed -i 's|/C=ZZ/ST=Somewhere/L=None/CN=OpenWrt/O=OpenWrt|/C=CN/ST=Beijing/L=Beijing/CN=BoltWrt/O=BoltWrt|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
+          sed -i 's|constexpr[[:space:]]\+auto[[:space:]]\+validity_days[[:space:]]*=[[:space:]]*3[[:space:]]*([[:space:]]*365[[:space:]]*+[[:space:]]*31[[:space:]]*);|constexpr auto validity_days = 3650;|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
+
       - name: Normalizing Build Configuration
         working-directory: /home/runner/work/BoltWrt/BoltWrt
         run: |
