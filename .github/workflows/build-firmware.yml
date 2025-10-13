@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /home/runner/work/BoltWrt/BoltWrt/dl
-          key: boltwrt-dl-${{ env.CONFIG_HASH }}
+          key: boltwrt-dl-${{ env.VERSION_HASH }}
 
       - name: Fetch Sources
         id: fetch-sources
@@ -59,23 +59,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: /home/runner/work/BoltWrt/BoltWrt/dl
-          key: boltwrt-dl-${{ env.CONFIG_HASH }}
-
-      - name: Build Tools
-        id: build-tools
-        working-directory: /home/runner/work/BoltWrt/BoltWrt
-        run: |
-          make tools/install -j $(($(nproc)+1)) || (echo "❌ Failed to build tools" && exit 1)
-          rm -rf build_dir/tools-*
-          df -hT .
-
-      - name: Build ToolChain
-        id: build-toolchain
-        working-directory: /home/runner/work/BoltWrt/BoltWrt
-        run: |
-          make toolchain/install -j $(($(nproc)+1)) || (echo "❌ Failed to build toolchain" && exit 1)
-          rm -rf build_dir/toolchain-*
-          df -hT .
+          key: boltwrt-dl-${{ env.VERSION_HASH }}
 
       - name: Build Firmware
         id: build
@@ -85,8 +69,12 @@ jobs:
           make -j $(($(nproc)+1)) || make -j1 V=s
 
           echo "Build completed successfully."
-          df -hT .
-      
+
+      - name: Check Disk Usage
+        if: cancelled()
+        working-directory: /home/runner/work/BoltWrt/BoltWrt
+        run: df -hT .
+
       - name: Upload Firmware Artifacts
         if: (!cancelled())
         uses: actions/upload-artifact@v4
@@ -103,10 +91,3 @@ jobs:
             bin/targets/x86/64/version.buildinfo
             bin/targets/x86/64/profiles.json
             bin/targets/x86/64/sha256sums
-
-      - name: Upload SDK Artifacts
-        if: (!cancelled())
-        uses: actions/upload-artifact@v4
-        with:
-          name: BoltWrt-SDK
-          path: bin/targets/x86/64/boltwrt-sdk-x86-64_*.tar.zst
