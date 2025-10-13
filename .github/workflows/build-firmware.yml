@@ -7,6 +7,17 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
+      - name: Free up disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          tool-cache: false
+          swap-storage: false
+
       - name: Initialize Environment
         run: |
           df -hT .
