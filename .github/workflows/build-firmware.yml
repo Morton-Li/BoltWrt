@@ -31,17 +31,56 @@ jobs:
           # 修正 luci-nginx 集合包的依赖
           sed -i -E "s/[[:space:]]*\+luci-theme-bootstrap//" feeds/luci/collections/luci-nginx/Makefile
 
+      - name: Normalizing Build Configuration
+        working-directory: /home/runner/work/BoltWrt/BoltWrt
+        run: |
+          mv config.txt .config
+          VERSION_HASH=$( (cat .config feeds.conf.default 2>/dev/null || true) | sha256sum | awk '{print $1}')
+          echo "VERSION_HASH=$VERSION_HASH" >> $GITHUB_ENV
+          make defconfig
+
+      - name: Restore DL Cache
+        id: restore-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/work/BoltWrt/BoltWrt/dl
+          key: boltwrt-dl-${{ env.CONFIG_HASH }}
+
+      - name: Fetch Sources
+        id: fetch-sources
+        if: steps.restore-cache.outputs.cache-hit != 'true'
+        working-directory: /home/runner/work/BoltWrt/BoltWrt
+        run: |
+          echo "Fetching all sources..."
+          make download -j6 || (echo "❌ Failed to fetch sources" && exit 1)
+
+      - name: Cache DL Directory
+        if: steps.restore-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: /home/runner/work/BoltWrt/BoltWrt/dl
+          key: boltwrt-dl-${{ env.CONFIG_HASH }}
+
+      - name: Build Tools
+        id: build-tools
+        working-directory: /home/runner/work/BoltWrt/BoltWrt
+        run: |
+          make tools/install -j $(($(nproc)+1)) || (echo "❌ Failed to build tools" && exit 1)
+          rm -rf build_dir/tools-*
+          df -hT .
+
+      - name: Build ToolChain
+        id: build-toolchain
+        working-directory: /home/runner/work/BoltWrt/BoltWrt
+        run: |
+          make toolchain/install -j $(($(nproc)+1)) || (echo "❌ Failed to build toolchain" && exit 1)
+          rm -rf build_dir/toolchain-*
+          df -hT .
+
       - name: Build Firmware
         id: build
         working-directory: /home/runner/work/BoltWrt/BoltWrt
         run: |
-          echo "Normalizing build configuration..."
-          mv config.txt .config
-          make defconfig
-
-          echo "Downloading feeds..."
-          make download -j6 || (echo "❌ Failed to download feeds" && exit 1)
-
           echo "Using $(nproc) processors for building"
           make -j $(($(nproc)+1)) || make -j1 V=s
 
