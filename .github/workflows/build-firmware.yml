@@ -2,9 +2,13 @@ name: Build Firmware
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
+    name: Build BoltWrt Firmware
     runs-on: ubuntu-24.04
     steps:
       - name: Free up disk space
@@ -107,3 +111,25 @@ jobs:
             bin/targets/x86/64/version.buildinfo
             bin/targets/x86/64/profiles.json
             bin/targets/x86/64/sha256sums
+
+  release:
+    name: Release Firmware
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download Firmware Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: BoltWrt-Firmware
+          path: ./firmware
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: BoltWrt Firmware ${{ github.ref_name }} Release
+          files: ./firmware/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
