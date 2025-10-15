@@ -39,8 +39,8 @@ jobs:
         run: |
           ./scripts/feeds update -a
 
-          # 修复 smartdns makefile 引用路径错误
-          sed -i 's|include[[:space:]]\+\.\./\.\./lang/rust/rust-package\.mk|include $(TOPDIR)/feeds/packages/lang/rust/rust-package.mk|' feeds/BoltWrt/net/openwrt-smartdns/Makefile
+          # 移除官方 golang 包
+          rm -rf feeds/packages/lang/golang
 
           ./scripts/feeds install -a
 
@@ -53,6 +53,9 @@ jobs:
           # 修改 nginx ssl 证书生成配置
           sed -i 's|/C=ZZ/ST=Somewhere/L=None/CN=OpenWrt/O=OpenWrt|/C=CN/ST=Beijing/L=Beijing/CN=BoltWrt/O=BoltWrt|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
           sed -i -E 's|constexpr[[:space:]]+auto[[:space:]]+validity_days[[:space:]]*=.*;|constexpr auto validity_days = 3650;|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
+
+          # 修复 smartdns makefile 引用路径错误
+          sed -i 's|include[[:space:]]\+\.\./\.\./lang/rust/rust-package\.mk|include $(TOPDIR)/feeds/packages/lang/rust/rust-package.mk|' feeds/BoltWrt/net/openwrt-smartdns/Makefile
 
       - name: Normalizing Build Configuration
         working-directory: /home/runner/work/BoltWrt/BoltWrt
