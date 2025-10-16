@@ -58,7 +58,7 @@ jobs:
           # 修复 smartdns makefile 引用路径错误
           sed -i 's|include[[:space:]]\+\.\./\.\./lang/rust/rust-package\.mk|include $(TOPDIR)/feeds/packages/lang/rust/rust-package.mk|' feeds/BoltWrt/net/openwrt-smartdns/Makefile
           # 修正 smartdns 的编译依赖
-          sed -i 's/^PKG_BUILD_DEPENDS:=PACKAGE_smartdns-ui:rust\/host$/PKG_BUILD_DEPENDS:=rust\/host/' feeds/BoltWrt/openwrt-smartdns/Makefile
+          sed -i 's/^PKG_BUILD_DEPENDS:=PACKAGE_smartdns-ui:rust\/host$/PKG_BUILD_DEPENDS:=rust\/host/' feeds/BoltWrt/net/openwrt-smartdns/Makefile
 
           # 调整 rust 组件的 ci-llvm 下载选项、
           sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
