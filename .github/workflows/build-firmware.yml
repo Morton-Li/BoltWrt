@@ -19,7 +19,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          tool-cache: false
+          tool-cache: true
           swap-storage: false
 
       - name: Initialize Environment
