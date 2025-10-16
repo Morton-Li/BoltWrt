@@ -109,7 +109,6 @@ jobs:
           echo "Build completed successfully."
 
       - name: Upload Firmware Artifacts
-        if: (!cancelled())
         uses: actions/upload-artifact@v4
         with:
           name: BoltWrt-Firmware
