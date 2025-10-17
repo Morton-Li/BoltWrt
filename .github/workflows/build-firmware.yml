@@ -2,11 +2,26 @@ name: Build Firmware
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
+    name: Build BoltWrt Firmware
     runs-on: ubuntu-24.04
     steps:
+      - name: Free up disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          tool-cache: true
+          swap-storage: false
+
       - name: Initialize Environment
         run: |
           df -hT .
@@ -23,6 +38,11 @@ jobs:
         working-directory: /home/runner/work/BoltWrt/BoltWrt
         run: |
           ./scripts/feeds update -a
+
+          # 移除官方 golang 包并引入自定义版本
+          rm -rf feeds/packages/lang/golang
+          mv feeds/BoltWrt/lang/golang feeds/packages/lang/golang
+
           ./scripts/feeds install -a
 
           # 修改 LuCI 默认主题路径
@@ -32,9 +52,14 @@ jobs:
           sed -i -E "s/[[:space:]]*\+luci-theme-bootstrap//" feeds/luci/collections/luci-nginx/Makefile
 
           # 修改 nginx ssl 证书生成配置
-          # std::string subject{"/C=ZZ/ST=Somewhere/L=None/CN=OpenWrt/O=OpenWrt"};
           sed -i 's|/C=ZZ/ST=Somewhere/L=None/CN=OpenWrt/O=OpenWrt|/C=CN/ST=Beijing/L=Beijing/CN=BoltWrt/O=BoltWrt|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
-          sed -i 's|constexpr[[:space:]]\+auto[[:space:]]\+validity_days[[:space:]]*=[[:space:]]*3[[:space:]]*([[:space:]]*365[[:space:]]*+[[:space:]]*31[[:space:]]*);|constexpr auto validity_days = 3650;|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
+          sed -i -E 's|constexpr[[:space:]]+auto[[:space:]]+validity_days[[:space:]]*=.*;|constexpr auto validity_days = 3650;|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
+
+          # 修复 smartdns makefile 引用路径错误
+          sed -i 's|include[[:space:]]\+\.\./\.\./lang/rust/rust-package\.mk|include $(TOPDIR)/feeds/packages/lang/rust/rust-package.mk|' feeds/BoltWrt/net/openwrt-smartdns/Makefile
+
+          # 调整 rust 组件的 ci-llvm 下载选项、
+          sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
 
       - name: Normalizing Build Configuration
         working-directory: /home/runner/work/BoltWrt/BoltWrt
@@ -48,7 +73,7 @@ jobs:
         id: restore-cache
         uses: actions/cache/restore@v4
         with:
-          path: /home/runner/work/BoltWrt/BoltWrt/dl
+          path: dl
           key: boltwrt-dl-${{ env.VERSION_HASH }}
 
       - name: Fetch Sources
@@ -63,7 +88,7 @@ jobs:
         if: steps.restore-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: /home/runner/work/BoltWrt/BoltWrt/dl
+          path: dl
           key: boltwrt-dl-${{ env.VERSION_HASH }}
 
       - name: Build Firmware
@@ -72,16 +97,9 @@ jobs:
         run: |
           echo "Using $(nproc) processors for building"
           make -j $(($(nproc)+1)) || make -j1 V=s
-
           echo "Build completed successfully."
 
-      - name: Check Disk Usage
-        if: cancelled()
-        working-directory: /home/runner/work/BoltWrt/BoltWrt
-        run: df -hT .
-
       - name: Upload Firmware Artifacts
-        if: (!cancelled())
         uses: actions/upload-artifact@v4
         with:
           name: BoltWrt-Firmware
@@ -96,3 +114,25 @@ jobs:
             bin/targets/x86/64/version.buildinfo
             bin/targets/x86/64/profiles.json
             bin/targets/x86/64/sha256sums
+
+  release:
+    name: Release Firmware
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download Firmware Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: BoltWrt-Firmware
+          path: ./firmware
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: BoltWrt Firmware ${{ github.ref_name }} Release
+          files: ./firmware/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

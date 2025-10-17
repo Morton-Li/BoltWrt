@@ -22,6 +22,11 @@ jobs:
         working-directory: /home/runner/work/BoltWrt/BoltWrt
         run: |
           ./scripts/feeds update -a
+
+          # 移除官方 golang 包并引入自定义版本
+          rm -rf feeds/packages/lang/golang
+          mv feeds/BoltWrt/lang/golang feeds/packages/lang/golang
+
           ./scripts/feeds install -a
 
           # 修改 LuCI 默认主题路径
@@ -29,6 +34,16 @@ jobs:
 
           # 修正 luci-nginx 集合包的依赖
           sed -i -E "s/[[:space:]]*\+luci-theme-bootstrap//" feeds/luci/collections/luci-nginx/Makefile
+
+          # 修改 nginx ssl 证书生成配置
+          sed -i 's|/C=ZZ/ST=Somewhere/L=None/CN=OpenWrt/O=OpenWrt|/C=CN/ST=Beijing/L=Beijing/CN=BoltWrt/O=BoltWrt|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
+          sed -i -E 's|constexpr[[:space:]]+auto[[:space:]]+validity_days[[:space:]]*=.*;|constexpr auto validity_days = 3650;|' feeds/packages/net/nginx-util/src/nginx-ssl-util.hpp
+
+          # 修复 smartdns makefile 引用路径错误
+          sed -i 's|include[[:space:]]\+\.\./\.\./lang/rust/rust-package\.mk|include $(TOPDIR)/feeds/packages/lang/rust/rust-package.mk|' feeds/BoltWrt/net/openwrt-smartdns/Makefile
+
+          # 调整 rust 组件的 ci-llvm 下载选项、
+          sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
 
           mv config.txt .config
 
