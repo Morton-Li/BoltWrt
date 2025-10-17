@@ -57,8 +57,6 @@ jobs:
 
           # 修复 smartdns makefile 引用路径错误
           sed -i 's|include[[:space:]]\+\.\./\.\./lang/rust/rust-package\.mk|include $(TOPDIR)/feeds/packages/lang/rust/rust-package.mk|' feeds/BoltWrt/net/openwrt-smartdns/Makefile
-          # 修正 smartdns 的编译依赖
-          sed -i 's/^PKG_BUILD_DEPENDS:=PACKAGE_smartdns-ui:rust\/host $/PKG_BUILD_DEPENDS:=rust\/host/' feeds/BoltWrt/net/openwrt-smartdns/Makefile
 
           # 调整 rust 组件的 ci-llvm 下载选项、
           sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
@@ -93,13 +91,6 @@ jobs:
           path: dl
           key: boltwrt-dl-${{ env.VERSION_HASH }}
 
-      - name: Restore Toolchain Cache
-        id: restore-toolchain-cache
-        uses: actions/cache/restore@v4
-        with:
-          path: staging_dir/toolchain-*
-          key: boltwrt-toolchain-${{ hashFiles('toolchain/*', 'include/toolchain.mk') }}
-
       - name: Build Firmware
         id: build
         working-directory: /home/runner/work/BoltWrt/BoltWrt
@@ -123,12 +114,6 @@ jobs:
             bin/targets/x86/64/version.buildinfo
             bin/targets/x86/64/profiles.json
             bin/targets/x86/64/sha256sums
-
-      - name: Cache Toolchain
-        uses: actions/cache/save@v4
-        with:
-          path: staging_dir/toolchain-*
-          key: boltwrt-toolchain-${{ hashFiles('toolchain/*', 'include/toolchain.mk') }}
 
   release:
     name: Release Firmware
