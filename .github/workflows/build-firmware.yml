@@ -132,7 +132,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: BoltWrt Firmware ${{ github.ref_name }} Release
+          name: BoltWrt ${{ github.ref_name }} Release
           files: ./firmware/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
