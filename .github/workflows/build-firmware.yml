@@ -100,6 +100,7 @@ jobs:
           echo "Build completed successfully."
 
       - name: Upload Firmware Artifacts
+        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: BoltWrt-Firmware
@@ -111,9 +112,6 @@ jobs:
             bin/targets/x86/64/boltwrt-x86-64-generic.manifest
             bin/targets/x86/64/config.buildinfo
             bin/targets/x86/64/feeds.buildinfo
-            bin/targets/x86/64/version.buildinfo
-            bin/targets/x86/64/profiles.json
-            bin/targets/x86/64/sha256sums
 
   release:
     name: Release Firmware
