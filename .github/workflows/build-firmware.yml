@@ -62,6 +62,7 @@ jobs:
           sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
 
       - name: Normalizing Build Configuration
+        id: normalize-config
         working-directory: /home/runner/work/BoltWrt/BoltWrt
         run: |
           mv config.txt .config
